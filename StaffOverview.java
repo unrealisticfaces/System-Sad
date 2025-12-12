@@ -10,202 +10,177 @@ public class StaffOverview extends JPanel {
 
     public StaffOverview(StaffMainFrame staffMainFrame, List<Ingredient> inventory) {
         this.staffMainFrame = staffMainFrame;
-
         setLayout(new BorderLayout());
-        setBackground(new Color(248, 249, 255));
+        setBackground(new Color(248, 249, 255)); // Soft background
 
-        // ================== Top Panel ==================
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-        topPanel.setBackground(new Color(248, 249, 255));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        // Use JScrollPane for content
+        add(createCenterPanel(inventory), BorderLayout.CENTER);
+    }
 
-        JLabel overviewLabel = new JLabel("Overview");
-        overviewLabel.setFont(new Font("Arial", Font.BOLD, 16));
+    private JScrollPane createCenterPanel(List<Ingredient> inventory) {
+        // --- CALCULATION LOGIC ---
+        int total = inventory.size();
+        int low = 0, soon = 0, expired = 0, out = 0;
 
-        JLabel subtitleLabel = new JLabel("View key insights and alerts at a glance.");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        topPanel.add(overviewLabel);
-        topPanel.add(Box.createVerticalStrut(5));
-        topPanel.add(subtitleLabel);
-
-        add(topPanel, BorderLayout.NORTH);
-
-        // ================== Compute Inventory Counts ==================
-        int totalIngredients = inventory.size();
-        int lowStock = 0;
-        int expiringSoon = 0;
-        int expired = 0;
-        int outOfStock = 0;
+        List<String> outList = new ArrayList<>();
+        List<String> expList = new ArrayList<>();
+        List<String> soonList = new ArrayList<>();
+        List<String> lowList = new ArrayList<>();
 
         LocalDate today = LocalDate.now();
 
         for (Ingredient ing : inventory) {
-            if (ing.getQuantity() == 0) outOfStock++;
-            if (ing.getQuantity() > 0 && ing.getQuantity() <= ing.getMinLevel()) lowStock++;
-            if (ing.getExpiryDate().isBefore(today)) expired++;
-            else if (!ing.getExpiryDate().isBefore(today) &&
-                     ing.getExpiryDate().isBefore(today.plusDays(7))) expiringSoon++;
+            if (ing.getQuantity() == 0) {
+                out++;
+                outList.add(ing.getName());
+            } else if (ing.getQuantity() <= ing.getMinLevel()) {
+                low++;
+                lowList.add(ing.getName());
+            }
+
+            if (ing.isExpired()) {
+                expired++;
+                expList.add(ing.getName());
+            } else if (ing.isExpiringSoon()) {
+                soon++;
+                soonList.add(ing.getName());
+            }
         }
 
-        // ================== Box Panel ==================
-        JPanel boxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        boxPanel.setBackground(new Color(248, 249, 255));
-        boxPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // --- UI LAYOUT ---
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(new Color(248, 249, 255));
+        content.setBorder(BorderFactory.createEmptyBorder(30, 40, 40, 40));
 
-        boxPanel.add(createBoxPanel("Total Ingredients", String.valueOf(totalIngredients), "Active inventory items"));
-        boxPanel.add(createBoxPanel("Low Stock Items", String.valueOf(lowStock), "Below minimum stock level"));
-        boxPanel.add(createBoxPanel("Expiring Soon", String.valueOf(expiringSoon), "Within 7 days"));
-        boxPanel.add(createBoxPanel("Expired Items", String.valueOf(expired), "Require immediate attention"));
-        boxPanel.add(createBoxPanel("Out of Stock", String.valueOf(outOfStock), "Require immediate attention"));
+        // 1. Header
+        JLabel header = new JLabel("Hello, Staff");
+        header.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        header.setForeground(new Color(50, 50, 60));
+        header.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(header);
 
-        // ================== Alerts Panel ==================
-        JPanel alertNotifsPanel = new JPanel();
-        alertNotifsPanel.setLayout(new BoxLayout(alertNotifsPanel, BoxLayout.Y_AXIS));
-        alertNotifsPanel.setBackground(new Color(248, 249, 255));
-        alertNotifsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        alertNotifsPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 30));
+        JLabel subHeader = new JLabel("Here is what's happening in the pantry today.");
+        subHeader.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        subHeader.setForeground(new Color(120, 120, 130));
+        subHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(subHeader);
+        content.add(Box.createVerticalStrut(30));
 
-        JLabel alertNotifsLabel = new JLabel("Alerts & Notifications");
-        alertNotifsLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        alertNotifsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        alertNotifsPanel.add(alertNotifsLabel);
-        alertNotifsPanel.add(Box.createVerticalStrut(10));
+        // 2. Stats Cards (Grid)
+        JPanel statsPanel = new JPanel(new GridLayout(1, 4, 25, 0)); // 1 row, 4 cols, 25px gap
+        statsPanel.setOpaque(false);
+        statsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        statsPanel.setMaximumSize(new Dimension(2000, 130));
 
-        // Out of Stock items
-        List<String> outOfStockItems = new ArrayList<>();
-        for (Ingredient ing : inventory) if (ing.getQuantity() == 0) outOfStockItems.add(ing.getName());
+        // Softer Colors for Cards
+        statsPanel.add(createStatCard("Total Items", String.valueOf(total), new Color(100, 149, 237), "/img/inventory.png")); // Cornflower Blue
+        statsPanel.add(createStatCard("Low Stock", String.valueOf(low), new Color(255, 179, 71), "/img/alert.png"));     // Pastel Orange
+        statsPanel.add(createStatCard("Expiring", String.valueOf(soon), new Color(255, 107, 107), "/img/expiring.png"));   // Soft Red
+        statsPanel.add(createStatCard("Out of Stock", String.valueOf(out), new Color(97, 97, 97), "/img/delete.png"));    // Grey
 
-        alertNotifsPanel.add(createAlertPanel("Out of Stock Alert",
-                "These items are out of stock and require immediate replenishment.",
-                outOfStockItems, Color.decode("#DC0000"), Color.decode("#F9DFDF"),
-                Color.decode("#BF1A1A"), Color.decode("#D2665A")));
-        alertNotifsPanel.add(Box.createVerticalStrut(10));
+        content.add(statsPanel);
+        content.add(Box.createVerticalStrut(40));
 
-        // Expired items
-        List<String> expiredItems = new ArrayList<>();
-        for (Ingredient ing : inventory) if (ing.getExpiryDate().isBefore(today)) expiredItems.add(ing.getName());
+        // 3. Alerts Section
+        JLabel alertHeader = new JLabel("Notifications");
+        alertHeader.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        alertHeader.setForeground(new Color(60, 60, 70));
+        alertHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(alertHeader);
+        content.add(Box.createVerticalStrut(15));
 
-        alertNotifsPanel.add(createAlertPanel("Expired Alert",
-                "These items are expired and require immediate action.",
-                expiredItems, Color.decode("#DC0000"), Color.decode("#F9DFDF"),
-                Color.decode("#BF1A1A"), Color.decode("#D2665A")));
-        alertNotifsPanel.add(Box.createVerticalStrut(10));
+        // 4. Alert Cards (Softer Look)
+        if (!outList.isEmpty())
+            content.add(createAlertCard("Out of Stock", "Restock needed:", outList, new Color(255, 235, 238), new Color(183, 28, 28))); // Soft Red Bg
 
-        // Expiring soon items
-        List<String> expiringItems = new ArrayList<>();
-        for (Ingredient ing : inventory)
-            if (!ing.getExpiryDate().isBefore(today) && ing.getExpiryDate().isBefore(today.plusDays(7)))
-                expiringItems.add(ing.getName());
+        if (!expList.isEmpty())
+            content.add(createAlertCard("Expired Items", "Discard items:", expList, new Color(255, 235, 238), new Color(183, 28, 28)));
 
-        alertNotifsPanel.add(createAlertPanel("Expiring Soon",
-                "These items will expire soon, consider reordering.",
-                expiringItems, Color.decode("#F29F58"), Color.decode("#F2E8C6"),
-                Color.decode("#DC6B19"), Color.decode("#FF7D29")));
-        alertNotifsPanel.add(Box.createVerticalStrut(10));
+        if (!soonList.isEmpty())
+            content.add(createAlertCard("Expiring Soon", "Use efficiently:", soonList, new Color(255, 248, 225), new Color(245, 127, 23))); // Soft Amber Bg
 
-        // Low Stock items
-        List<String> lowStockItems = new ArrayList<>();
-        for (Ingredient ing : inventory)
-            if (ing.getQuantity() > 0 && ing.getQuantity() <= ing.getMinLevel())
-                lowStockItems.add(ing.getName());
+        if (!lowList.isEmpty())
+            content.add(createAlertCard("Running Low", "Monitor levels:", lowList, new Color(255, 248, 225), new Color(245, 127, 23)));
 
-        alertNotifsPanel.add(createAlertPanel("Low Stock Warning",
-                "These items are running low and should be reordered soon.",
-                lowStockItems, Color.decode("#CCCC00"), Color.decode("#FFF5E0"),
-                Color.decode("#FFB823"), Color.decode("#FB9E3A")));
-        alertNotifsPanel.add(Box.createVerticalStrut(10));
-
-        // ================== Center Panel ==================
-        JPanel centerPanel = new JPanel();
-        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-        centerPanel.setBackground(new Color(248, 249, 255));
-        centerPanel.setBorder(BorderFactory.createEmptyBorder(0, 30, 30, 30));
-        centerPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        centerPanel.add(boxPanel);
-        centerPanel.add(alertNotifsPanel);
-
-        add(centerPanel, BorderLayout.CENTER);
-    }
-
-    // ================== Box Panel Creation ==================
-    private JPanel createBoxPanel(String labelText, String countText, String subLabelText) {
-        JPanel box = new JPanel();
-        box.setBackground(Color.WHITE);
-        box.setPreferredSize(new Dimension(200, 100));
-        box.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
-        box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
-        box.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Arial", Font.BOLD, 16));
-        label.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel count = new JLabel(countText);
-        count.setFont(new Font("Arial", Font.PLAIN, 20));
-        count.setForeground(Color.RED);
-        count.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel subLabel = new JLabel(subLabelText);
-        subLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        subLabel.setForeground(Color.GRAY);
-        subLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        box.add(label);
-        box.add(Box.createVerticalStrut(15));
-        box.add(count);
-        box.add(Box.createVerticalStrut(5));
-        box.add(subLabel);
-
-        return box;
-    }
-
-    // ================== Alert Panel Creation ==================
-    private JPanel createAlertPanel(String alertText, String subLabelText, List<String> items,
-                                    Color borderColor, Color bgColor, Color labelColor, Color textColor) {
-        JPanel alertPanel = new JPanel();
-        alertPanel.setBackground(bgColor);
-        alertPanel.setOpaque(true);
-        alertPanel.setLayout(new BoxLayout(alertPanel, BoxLayout.Y_AXIS));
-        alertPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        alertPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderColor, 1),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
-
-        JLabel alertLabel = new JLabel(alertText);
-        alertLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        alertLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        alertLabel.setForeground(labelColor);
-
-        JPanel subLabelPanel = new JPanel();
-        subLabelPanel.setLayout(new BoxLayout(subLabelPanel, BoxLayout.Y_AXIS));
-        subLabelPanel.setBackground(bgColor);
-        subLabelPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel alertSubLabel = new JLabel(subLabelText);
-        alertSubLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        alertSubLabel.setForeground(textColor);
-        alertSubLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        subLabelPanel.add(alertSubLabel);
-
-        for (String item : items) {
-            JLabel listItem = new JLabel("<html>&#8226; " + item + "</html>");
-            listItem.setFont(new Font("Arial", Font.PLAIN, 12));
-            listItem.setForeground(textColor);
-            listItem.setAlignmentX(Component.LEFT_ALIGNMENT);
-            subLabelPanel.add(listItem);
+        if (outList.isEmpty() && expList.isEmpty() && soonList.isEmpty() && lowList.isEmpty()) {
+            JPanel cleanState = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            cleanState.setOpaque(false);
+            JLabel msg = new JLabel("Everything looks good! No alerts.");
+            msg.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+            msg.setForeground(new Color(39, 174, 96));
+            cleanState.add(msg);
+            content.add(cleanState);
         }
 
-        alertPanel.add(alertLabel);
-        alertPanel.add(Box.createVerticalStrut(3));
-        alertPanel.add(subLabelPanel);
+        JScrollPane scroll = new JScrollPane(content);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
+    }
 
-        return alertPanel;
+    // --- CARD HELPER ---
+    private JPanel createStatCard(String title, String val, Color color, String iconPath) {
+        JPanel card = new JPanel();
+        card.setLayout(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        // Left Colored Border Line
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 4, 0, 0, color),
+                BorderFactory.createEmptyBorder(15, 20, 15, 20)
+        ));
+
+        // Text Panel
+        JPanel textP = new JPanel(new GridLayout(2, 1));
+        textP.setOpaque(false);
+        JLabel t = new JLabel(title);
+        t.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        t.setForeground(Color.GRAY);
+        
+        JLabel v = new JLabel(val);
+        v.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        v.setForeground(Color.DARK_GRAY);
+        
+        textP.add(t);
+        textP.add(v);
+
+        card.add(textP, BorderLayout.CENTER);
+        return card;
+    }
+
+    // --- ALERT CARD HELPER ---
+    private JPanel createAlertCard(String title, String sub, List<String> items, Color bg, Color accent) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(bg);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 3, 0, 0, accent),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)
+        ));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setMaximumSize(new Dimension(2000, 300));
+
+        JLabel t = new JLabel(title);
+        t.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        t.setForeground(accent);
+        t.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel s = new JLabel(sub + " " + String.join(", ", items));
+        s.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        s.setForeground(new Color(60, 60, 60));
+        s.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        card.add(t);
+        card.add(Box.createVerticalStrut(5));
+        card.add(s);
+
+        // Wrapper for margin
+        JPanel wrap = new JPanel(new BorderLayout());
+        wrap.setOpaque(false);
+        wrap.add(card);
+        wrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        return wrap;
     }
 }

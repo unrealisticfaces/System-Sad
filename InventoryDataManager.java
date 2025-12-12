@@ -13,28 +13,30 @@ public class InventoryDataManager {
         List<Ingredient> list = new ArrayList<>();
         File file = new File(FILE_NAME);
 
+        // If file doesn't exist, create default data
         if (!file.exists()) {
-            // Create default data if file doesn't exist
             System.out.println("No database found. Creating default inventory.");
             list.add(new Ingredient("Eggs", "Poultry", 6, 10, "pcs", LocalDate.of(2025, 12, 1)));
             list.add(new Ingredient("Milk", "Dairy", 12, 10, "L", LocalDate.of(2025, 12, 5)));
             list.add(new Ingredient("Tomatoes", "Vegetable", 5, 10, "kg", LocalDate.of(2025, 11, 25)));
-            list.add(new Ingredient("Fresh Chicken", "Meat", 3, 5, "pcs", LocalDate.of(2025, 11, 23)));
-            list.add(new Ingredient("Fresh Pork", "Meat", 0, 5, "pcs", LocalDate.of(2025, 11, 20)));
-            saveInventory(list); // Save immediately
+            saveInventory(list); 
             return list;
         }
 
         try {
             String content = new String(Files.readAllBytes(Paths.get(FILE_NAME)));
-            // Remove brackets []
+            
+            // Basic check to ensure content isn't just "[]" or empty
             if (content.length() > 2) {
+                // Remove outer brackets [ ]
                 content = content.substring(1, content.length() - 1); 
-                // Split by objects "}, {"
-                String[] items = content.split("}, \\{");
+                
+                // FIXED: Split by "}, {" allowing for newlines or spaces in between
+                // The regex "},\\s*\\{" matches "}," followed by any whitespace/newline, followed by "{"
+                String[] items = content.split("},\\s*\\{");
                 
                 for (String item : items) {
-                    // Fix formatting for split items
+                    // Because split consumes the brackets, we might need to add them back
                     if (!item.startsWith("{")) item = "{" + item;
                     if (!item.endsWith("}")) item = item + "}";
                     
@@ -54,6 +56,7 @@ public class InventoryDataManager {
         StringBuilder json = new StringBuilder("[\n");
         for (int i = 0; i < inventory.size(); i++) {
             json.append(inventory.get(i).toJSON());
+            // Add comma and newline if not the last item
             if (i < inventory.size() - 1) {
                 json.append(", \n");
             }
