@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class AdminMainFrame extends JFrame {
@@ -22,15 +20,8 @@ public class AdminMainFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // ===================== Initialize Inventory =====================
-        inventory = new ArrayList<>();
-        
-        inventory.add(new Ingredient("Eggs", "Poultry", 6, 10, "pcs", LocalDate.of(2025, 12, 1)));
-        inventory.add(new Ingredient("Milk", "Dairy", 12, 10, "L", LocalDate.of(2025, 12, 5)));
-        inventory.add(new Ingredient("Tomatoes", "Vegetable", 5, 10, "kg", LocalDate.of(2025, 11, 25)));
-        inventory.add(new Ingredient("Fresh Chicken", "Meat", 3, 5, "pcs", LocalDate.of(2025, 11, 23)));
-        inventory.add(new Ingredient("Fresh Pork", "Meat", 0, 5, "pcs", LocalDate.of(2025, 11, 20)));
-        inventory.add(new Ingredient("Lettuce", "Vegetable", 15, 5, "kg", LocalDate.of(2025, 11, 30)));
+        // ===================== LOAD FROM DB =====================
+        inventory = InventoryDataManager.loadInventory(); 
 
         // ===================== Top Navigation =====================
         AdminTopNavBar adminTopNavBar = new AdminTopNavBar(this);
@@ -54,6 +45,13 @@ public class AdminMainFrame extends JFrame {
 
     // Method to switch panels
     public void showPanel(JPanel panel) {
+        // Refresh data whenever switching panels to ensure sync
+        if (panel instanceof AdminOverview) ((AdminOverview)panel).refreshOverview(inventory);
+        if (panel instanceof AdminReports) {
+            ((AdminReports)panel).refreshTable();
+            ((AdminReports)panel).refreshSummary();
+        }
+        
         mainPanel.removeAll();
         mainPanel.add(panel, BorderLayout.CENTER);
         mainPanel.revalidate();

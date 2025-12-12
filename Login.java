@@ -17,7 +17,7 @@ public class Login extends JFrame {
     // --- Logic Data ---
     private Map<String, String> staffCredentials = new HashMap<>();
     private Map<String, String> adminCredentials = new HashMap<>();
-    private boolean isAdmin = false;
+    private boolean isAdmin = false; // Starts as Staff
 
     public Login() {
         // Init Mock Data
@@ -33,11 +33,11 @@ public class Login extends JFrame {
 
         // 1. Background Panel
         JPanel mainBackground = new JPanel();
-        mainBackground.setLayout(new GridBagLayout()); // Centers the card
+        mainBackground.setLayout(new GridBagLayout()); 
         mainBackground.setBackground(BACKGROUND_COLOR);
         add(mainBackground, BorderLayout.CENTER);
 
-        // 2. The Floating Card (Custom Rounded Panel)
+        // 2. The Floating Card
         JPanel loginCard = new RoundedPanel(20, Color.WHITE);
         loginCard.setLayout(new BoxLayout(loginCard, BoxLayout.Y_AXIS));
         loginCard.setBorder(new EmptyBorder(40, 50, 40, 50)); 
@@ -91,7 +91,6 @@ public class Login extends JFrame {
         loginCard.add(togglePanel);
         loginCard.add(Box.createVerticalStrut(25));
         
-        // Input Wrappers for alignment
         loginCard.add(wrapComponent(userField));
         loginCard.add(Box.createVerticalStrut(15));
         loginCard.add(wrapComponent(passField));
@@ -99,13 +98,12 @@ public class Login extends JFrame {
         
         loginCard.add(loginBtn);
 
-        mainBackground.add(loginCard); // Add card to background
+        mainBackground.add(loginCard); 
 
         setVisible(true);
         SwingUtilities.invokeLater(() -> loginCard.requestFocusInWindow());
     }
 
-    // --- Helper: Clean Login Logic ---
     private void performLogin(JTextField userField, JPasswordField passField) {
         String user = userField.getText().trim();
         String pass = new String(passField.getPassword()).trim();
@@ -127,32 +125,33 @@ public class Login extends JFrame {
         }
     }
 
-    // --- Helper: Create Custom Toggle ---
+    // --- FIXED TOGGLE SWITCH ---
     private JPanel createToggle() {
-        int w = 240; int h = 36;
-        JPanel container = new JPanel(null);
+        int w = 240; int h = 40;
+        JPanel container = new JPanel(null); // Absolute layout
         container.setPreferredSize(new Dimension(w, h));
         container.setMaximumSize(new Dimension(w, h));
         container.setOpaque(false);
 
-        // Background (Grey Pill)
-        RoundedPanel bg = new RoundedPanel(h, new Color(230, 230, 230));
+        // 1. Background (Light Grey Pill) - Added LAST (Bottom Layer)
+        RoundedPanel bg = new RoundedPanel(h, new Color(225, 225, 225));
         bg.setBounds(0, 0, w, h);
 
-        // Slider (White Pill)
+        // 2. Slider (White Pill) - Added MIDDLE
         JPanel slider = new RoundedPanel(h - 4, Color.WHITE);
         slider.setBounds(2, 2, (w/2)-2, h-4);
         
-        // Labels
+        // 3. Labels - Added FIRST (Top Layer)
         JLabel lblStaff = new JLabel("Staff", SwingConstants.CENTER);
-        lblStaff.setFont(MAIN_FONT);
+        lblStaff.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblStaff.setBounds(0,0, w/2, h);
-        lblStaff.setForeground(Color.BLACK);
+        // Default: Staff is Active (Black), Admin is Inactive (Grey)
+        lblStaff.setForeground(Color.BLACK); 
         
         JLabel lblAdmin = new JLabel("Admin", SwingConstants.CENTER);
-        lblAdmin.setFont(MAIN_FONT);
+        lblAdmin.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblAdmin.setBounds(w/2,0, w/2, h);
-        lblAdmin.setForeground(Color.GRAY);
+        lblAdmin.setForeground(Color.GRAY); 
 
         // Click Logic
         container.addMouseListener(new MouseAdapter() {
@@ -167,9 +166,18 @@ public class Login extends JFrame {
                         if(Math.abs(curX - targetX) < 5) {
                             slider.setLocation(targetX, 2);
                             ((Timer)ae.getSource()).stop();
-                            // Update Text Colors
-                            lblStaff.setForeground(isAdmin ? Color.GRAY : Color.BLACK);
-                            lblAdmin.setForeground(isAdmin ? Color.BLACK : Color.GRAY);
+                            
+                            // High Contrast Text Logic
+                            if (isAdmin) {
+                                lblStaff.setForeground(Color.GRAY);
+                                lblAdmin.setForeground(Color.BLACK);
+                            } else {
+                                lblStaff.setForeground(Color.BLACK);
+                                lblAdmin.setForeground(Color.GRAY);
+                            }
+                            
+                            // Force redraw to ensure text is on top
+                            container.repaint();
                         } else {
                             int dir = targetX > curX ? 5 : -5;
                             slider.setLocation(curX + dir, 2);
@@ -180,14 +188,14 @@ public class Login extends JFrame {
             }
         });
 
-        container.add(lblStaff);
-        container.add(lblAdmin);
-        container.add(slider); 
-        container.setComponentZOrder(lblStaff, 0);
-        container.setComponentZOrder(lblAdmin, 0);
-        container.setComponentZOrder(slider, 1);
-        container.add(bg);
-        container.setComponentZOrder(bg, 2);
+        // Layering Strategy:
+        // In Swing, the first component added is drawn LAST (on top).
+        // The last component added is drawn FIRST (at bottom).
+        
+        container.add(lblStaff); // Top
+        container.add(lblAdmin); // Top
+        container.add(slider);   // Middle
+        container.add(bg);       // Bottom
         
         return container;
     }

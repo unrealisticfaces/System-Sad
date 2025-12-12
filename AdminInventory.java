@@ -180,11 +180,11 @@ public class AdminInventory extends JPanel {
                 Ingredient ing = new Ingredient(name, type, qty, min, unit, expDate);
                 inventory.add(ing);
                 
+                // --- SAVE TO DB ---
+                InventoryDataManager.saveInventory(inventory);
+
                 // Update UI across all panels
                 refreshTableData();
-                adminMainFrame.adminOverview.refreshOverview(inventory);
-                adminMainFrame.adminReports.refreshTable();
-                adminMainFrame.adminReports.refreshSummary();
                 
                 dialog.dispose();
             } catch (Exception ex) {
@@ -208,27 +208,31 @@ public class AdminInventory extends JPanel {
         public ActionEditor(JCheckBox cb) {
             p.add(edit); p.add(del);
             p.setBackground(Color.WHITE);
+            
+            // --- DELETE ---
             del.addActionListener(e -> {
-                int viewRow = table.getSelectedRow();
-                if (viewRow != -1) {
-                    int modelRow = table.convertRowIndexToModel(viewRow);
-                    inventory.remove(modelRow);
+                int row = table.getSelectedRow();
+                if(row != -1) {
+                    inventory.remove(row);
+                    // Save
+                    InventoryDataManager.saveInventory(inventory);
+                    
                     refreshTableData();
-                    adminMainFrame.adminOverview.refreshOverview(inventory);
-                    adminMainFrame.adminReports.refreshSummary();
-                    adminMainFrame.adminReports.refreshTable();
                     fireEditingStopped();
                 }
             });
+            
+            // --- EDIT ---
             edit.addActionListener(e -> {
-                 // Simple Edit Logic (Expand as needed)
-                 int viewRow = table.getSelectedRow();
-                 if (viewRow != -1) {
-                    int modelRow = table.convertRowIndexToModel(viewRow);
-                    String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(modelRow).getQuantity());
-                    if (val != null) {
+                 int row = table.getSelectedRow();
+                 if (row != -1) {
+                    String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(row).getQuantity());
+                    if(val != null) {
                         try {
-                            inventory.get(modelRow).setQuantity(Integer.parseInt(val));
+                            inventory.get(row).setQuantity(Integer.parseInt(val));
+                            // Save
+                            InventoryDataManager.saveInventory(inventory);
+                            
                             refreshTableData();
                         } catch (NumberFormatException ex) {
                             JOptionPane.showMessageDialog(null, "Invalid number");
