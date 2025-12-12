@@ -3,7 +3,6 @@ import javax.swing.table.*;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.*;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -66,14 +65,12 @@ public class AdminInventory extends JPanel {
         searchField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
                 if(searchField.getText().equals("Search ingredients...")) {
-                    searchField.setText("");
-                    searchField.setForeground(Color.BLACK);
+                    searchField.setText(""); searchField.setForeground(Color.BLACK);
                 }
             }
             public void focusLost(FocusEvent e) {
                 if(searchField.getText().isEmpty()) {
-                    searchField.setText("Search ingredients...");
-                    searchField.setForeground(Color.GRAY);
+                    searchField.setText("Search ingredients..."); searchField.setForeground(Color.GRAY);
                 }
             }
         });
@@ -93,15 +90,25 @@ public class AdminInventory extends JPanel {
         table = new JTable(model);
         StyleUtils.styleTable(table);
         
+        // --- ALIGNMENT FIXES ---
+        // Center these columns (Header + Content)
+        StyleUtils.alignTableColumn(table, 2, SwingConstants.CENTER); // Qty
+        StyleUtils.alignTableColumn(table, 3, SwingConstants.CENTER); // Min
+        StyleUtils.alignTableColumn(table, 4, SwingConstants.CENTER); // Unit
+        StyleUtils.alignTableColumn(table, 5, SwingConstants.CENTER); // Expiry
+        
         // Renderers
         table.getColumnModel().getColumn(6).setCellRenderer(new StyleUtils.StatusCellRenderer());
         table.getColumnModel().getColumn(7).setCellRenderer(new ActionRenderer());
         table.getColumnModel().getColumn(7).setCellEditor(new ActionEditor(new JCheckBox()));
         
-        // Column Widths
+        // Force Actions Header to Center (even if custom renderer isn't used for header)
+        ((DefaultTableCellRenderer)table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+        // Width adjustments
         table.getColumnModel().getColumn(0).setPreferredWidth(150);
         table.getColumnModel().getColumn(6).setPreferredWidth(120);
-        table.getColumnModel().getColumn(7).setPreferredWidth(180); // More space for buttons
+        table.getColumnModel().getColumn(7).setPreferredWidth(160);
 
         JScrollPane scroll = new JScrollPane(table);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -113,7 +120,7 @@ public class AdminInventory extends JPanel {
         shadowContainer.add(contentPanel, BorderLayout.CENTER);
         add(shadowContainer, BorderLayout.CENTER);
 
-        // Search Logic
+        // Logic...
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
         searchField.addKeyListener(new KeyAdapter() {
@@ -152,14 +159,15 @@ public class AdminInventory extends JPanel {
         dialog.setSize(400, 500);
         dialog.setLayout(new GridLayout(7, 2, 10, 10));
         dialog.setLocationRelativeTo(null);
-
+        
+        // ... (Keep existing dialog logic, abbreviated here for length) ...
         JTextField nameField = new JTextField();
         JComboBox<String> catBox = new JComboBox<>(new String[]{"Meat", "Vegetable", "Dairy", "Poultry", "Others"});
         JTextField qtyField = new JTextField();
         JTextField minField = new JTextField();
         JComboBox<String> unitBox = new JComboBox<>(new String[]{"pcs", "kg", "L", "g", "mL"});
         JFormattedTextField dateField = null;
-        try { dateField = new JFormattedTextField(new MaskFormatter("##/##/####")); } catch (ParseException e) {}
+        try { dateField = new JFormattedTextField(new MaskFormatter("##/##/####")); } catch (Exception e) {}
 
         dialog.add(new JLabel("Name:")); dialog.add(nameField);
         dialog.add(new JLabel("Category:")); dialog.add(catBox);
@@ -182,42 +190,31 @@ public class AdminInventory extends JPanel {
                 InventoryDataManager.saveInventory(inventory);
                 refreshTableData();
                 dialog.dispose();
-            } catch (Exception ex) { JOptionPane.showMessageDialog(dialog, "Invalid Input: " + ex.getMessage()); }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(dialog, "Invalid Input"); }
         });
-
         dialog.add(new JLabel("")); dialog.add(saveBtn);
         dialog.setVisible(true);
     }
 
-    // --- UPDATED RENDERER FOR PERFECT ALIGNMENT ---
     class ActionRenderer extends JPanel implements TableCellRenderer {
         JButton edit = new JButton("Edit");
         JButton del = new JButton("Delete");
-
         public ActionRenderer() {
             setOpaque(true);
-            setLayout(new GridBagLayout()); // GridBag centers components by default
+            setLayout(new GridBagLayout()); 
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(0, 2, 0, 2); // Small gap between buttons
-
-            // Style Edit
+            gbc.insets = new Insets(0, 2, 0, 2);
             styleActionBtn(edit, new Color(241, 196, 15));
-            // Style Delete
             styleActionBtn(del, new Color(231, 76, 60));
-            
             add(edit, gbc);
             add(del, gbc);
         }
-
         private void styleActionBtn(JButton btn, Color c) {
-            btn.setBackground(c);
-            btn.setForeground(Color.WHITE);
-            btn.setBorder(null);
-            btn.setFocusPainted(false);
+            btn.setBackground(c); btn.setForeground(Color.WHITE);
+            btn.setBorder(null); btn.setFocusPainted(false);
             btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
             btn.setPreferredSize(new Dimension(60, 26));
         }
-
         public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
             setBackground(s ? t.getSelectionBackground() : Color.WHITE);
             return this;
@@ -228,57 +225,37 @@ public class AdminInventory extends JPanel {
         JPanel p = new JPanel(new GridBagLayout());
         JButton edit = new JButton("Edit");
         JButton del = new JButton("Delete");
-        
         public ActionEditor(JCheckBox cb) {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(0, 2, 0, 2);
-
-            styleActionBtn(edit, new Color(241, 196, 15));
-            styleActionBtn(del, new Color(231, 76, 60));
-
-            p.add(edit, gbc);
-            p.add(del, gbc);
+            edit.setBackground(new Color(241, 196, 15)); edit.setForeground(Color.WHITE);
+            edit.setBorder(null); edit.setPreferredSize(new Dimension(60, 26));
+            del.setBackground(new Color(231, 76, 60)); del.setForeground(Color.WHITE);
+            del.setBorder(null); del.setPreferredSize(new Dimension(60, 26));
+            p.add(edit, gbc); p.add(del, gbc);
             
             del.addActionListener(e -> {
                 int row = table.getSelectedRow();
-                if(row != -1) {
-                    if(JOptionPane.showConfirmDialog(null, "Delete this item?", "Confirm", JOptionPane.YES_NO_OPTION) == 0){
-                        inventory.remove(row);
-                        InventoryDataManager.saveInventory(inventory);
-                        refreshTableData();
-                    }
-                    fireEditingStopped();
+                if(row != -1 && JOptionPane.showConfirmDialog(null, "Delete?", "Confirm", JOptionPane.YES_NO_OPTION)==0){
+                    inventory.remove(row);
+                    InventoryDataManager.saveInventory(inventory);
+                    refreshTableData();
                 }
+                fireEditingStopped();
             });
-            
             edit.addActionListener(e -> {
                  int row = table.getSelectedRow();
                  if (row != -1) {
                     String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(row).getQuantity());
-                    if(val != null) {
-                        try {
-                            inventory.get(row).setQuantity(Integer.parseInt(val));
-                            InventoryDataManager.saveInventory(inventory);
-                            refreshTableData();
-                        } catch (Exception ex) {}
-                        fireEditingStopped();
+                    if(val!=null) { 
+                        try { inventory.get(row).setQuantity(Integer.parseInt(val)); InventoryDataManager.saveInventory(inventory); refreshTableData(); } catch(Exception ex){}
                     }
+                    fireEditingStopped();
                  }
             });
         }
-        
-        private void styleActionBtn(JButton btn, Color c) {
-            btn.setBackground(c);
-            btn.setForeground(Color.WHITE);
-            btn.setBorder(null);
-            btn.setFocusPainted(false);
-            btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-            btn.setPreferredSize(new Dimension(60, 26));
-        }
-
         public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) { 
-            p.setBackground(t.getSelectionBackground());
-            return p; 
+            p.setBackground(t.getSelectionBackground()); return p; 
         }
         public Object getCellEditorValue() { return ""; }
     }

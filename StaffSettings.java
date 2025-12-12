@@ -7,11 +7,10 @@ public class StaffSettings extends JPanel {
 
     public StaffSettings(StaffMainFrame staffMainFrame) {
         this.staffMainFrame = staffMainFrame;
-
         setLayout(new BorderLayout());
         setBackground(StyleUtils.BG_COLOR);
 
-        // Header
+        // --- HEADER ---
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
         topPanel.setBackground(StyleUtils.BG_COLOR);
@@ -21,7 +20,7 @@ public class StaffSettings extends JPanel {
         settingsLabel.setFont(StyleUtils.HEADER_FONT);
         settingsLabel.setForeground(StyleUtils.DARK_TEXT);
         
-        JLabel subLabel = new JLabel("Manage account preferences and system options.");
+        JLabel subLabel = new JLabel("Manage account preferences.");
         subLabel.setFont(StyleUtils.NORMAL_FONT);
         subLabel.setForeground(StyleUtils.LIGHT_TEXT);
 
@@ -30,108 +29,100 @@ public class StaffSettings extends JPanel {
         topPanel.add(subLabel);
         add(topPanel, BorderLayout.NORTH);
 
-        // --- CONTENT (Using GridBagLayout for alignment) ---
+        // --- CONTENT FORM ---
         JPanel contentPanel = new JPanel(new GridBagLayout());
         contentPanel.setBackground(Color.WHITE);
         
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10); // Padding between items
+        gbc.insets = new Insets(10, 15, 10, 15); 
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.anchor = GridBagConstraints.WEST;
 
-        // --- SECTION 1: Account Info ---
+        // --- SECT 1 ---
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         JLabel sec1 = new JLabel("Account Information");
         sec1.setFont(new Font("Segoe UI", Font.BOLD, 16));
         contentPanel.add(sec1, gbc);
 
-        // Row 1: Username
-        gbc.gridwidth = 1; gbc.gridy++; gbc.weightx = 0;
+        // Row 1
+        gbc.gridy++; gbc.gridwidth = 1; gbc.weightx = 0; gbc.anchor = GridBagConstraints.EAST;
         contentPanel.add(createLabel("Username:"), gbc);
         
-        gbc.gridx = 1; gbc.weightx = 1;
-        JTextField userField = createField("staff (read-only)", false);
-        contentPanel.add(userField, gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.anchor = GridBagConstraints.WEST;
+        contentPanel.add(createField("staff (read-only)", false), gbc);
 
-        // Row 2: Password
-        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0;
+        // Row 2
+        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0; gbc.anchor = GridBagConstraints.EAST;
         contentPanel.add(createLabel("Password:"), gbc);
         
-        gbc.gridx = 1; gbc.weightx = 1;
-        JPasswordField passField = new JPasswordField("password");
-        styleField(passField, false);
-        contentPanel.add(passField, gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.anchor = GridBagConstraints.WEST;
+        contentPanel.add(createPassField("password", false), gbc);
 
-        // --- SECTION 2: Change Password ---
-        gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2; gbc.insets = new Insets(30, 10, 10, 10); // More top margin
+        // --- SECT 2 ---
+        gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(30, 15, 10, 15);
         JLabel sec2 = new JLabel("Change Password");
         sec2.setFont(new Font("Segoe UI", Font.BOLD, 16));
         contentPanel.add(sec2, gbc);
 
-        // Row 3: Current
-        gbc.gridy++; gbc.gridwidth = 1; gbc.weightx = 0; gbc.insets = new Insets(10, 10, 10, 10);
+        // Row 3
+        gbc.insets = new Insets(10, 15, 10, 15);
+        gbc.gridy++; gbc.gridwidth = 1; gbc.weightx = 0; gbc.anchor = GridBagConstraints.EAST;
         contentPanel.add(createLabel("Current Password:"), gbc);
         
-        gbc.gridx = 1; gbc.weightx = 1;
-        contentPanel.add(createField("", true), gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.anchor = GridBagConstraints.WEST;
+        contentPanel.add(createPassField("", true), gbc);
 
-        // Row 4: New
-        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0;
+        // Row 4
+        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0; gbc.anchor = GridBagConstraints.EAST;
         contentPanel.add(createLabel("New Password:"), gbc);
         
-        gbc.gridx = 1; gbc.weightx = 1;
-        contentPanel.add(createField("", true), gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.anchor = GridBagConstraints.WEST;
+        contentPanel.add(createPassField("", true), gbc);
 
-        // Row 5: Confirm
-        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0;
+        // Row 5
+        gbc.gridx = 0; gbc.gridy++; gbc.weightx = 0; gbc.anchor = GridBagConstraints.EAST;
         contentPanel.add(createLabel("Confirm Password:"), gbc);
         
-        gbc.gridx = 1; gbc.weightx = 1;
-        contentPanel.add(createField("", true), gbc);
+        gbc.gridx = 1; gbc.weightx = 1; gbc.anchor = GridBagConstraints.WEST;
+        contentPanel.add(createPassField("", true), gbc);
 
         // Button
-        gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        JButton changeBtn = new JButton("Change Password");
-        changeBtn.setBackground(Color.BLACK);
-        changeBtn.setForeground(Color.WHITE);
-        changeBtn.setFocusPainted(false);
-        changeBtn.setFont(StyleUtils.NORMAL_FONT);
-        changeBtn.setPreferredSize(new Dimension(180, 35));
-        contentPanel.add(changeBtn, gbc);
+        gbc.gridx = 1; gbc.gridy++; gbc.anchor = GridBagConstraints.WEST;
+        JButton btn = new JButton("Change Password");
+        btn.setBackground(Color.BLACK); btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false); btn.setPreferredSize(new Dimension(160, 35));
+        contentPanel.add(btn, gbc);
 
-        // Push everything up
+        // Push to top
         gbc.gridy++; gbc.weighty = 1;
         contentPanel.add(Box.createGlue(), gbc);
 
-        // Wrapper for margin
-        JPanel outerWrapper = new JPanel(new BorderLayout());
-        outerWrapper.setOpaque(false);
-        outerWrapper.setBorder(BorderFactory.createEmptyBorder(0, 40, 40, 40));
-        outerWrapper.add(contentPanel, BorderLayout.CENTER);
-
-        add(outerWrapper, BorderLayout.CENTER);
+        // Wrapper
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(BorderFactory.createEmptyBorder(0, 40, 40, 40));
+        wrapper.add(contentPanel, BorderLayout.CENTER);
+        add(wrapper, BorderLayout.CENTER);
     }
 
-    private JLabel createLabel(String text) {
-        JLabel l = new JLabel(text);
+    private JLabel createLabel(String t) {
+        JLabel l = new JLabel(t);
         l.setFont(StyleUtils.NORMAL_FONT);
-        l.setPreferredSize(new Dimension(140, 30)); // Fixed width for alignment
+        l.setHorizontalAlignment(SwingConstants.RIGHT);
         return l;
     }
-
-    private JTextField createField(String text, boolean editable) {
-        JTextField f = new JTextField(text);
-        styleField(f, editable);
-        return f;
+    private JTextField createField(String t, boolean e) {
+        JTextField f = new JTextField(t);
+        styleField(f, e); return f;
     }
-
-    private void styleField(JTextField f, boolean editable) {
+    private JPasswordField createPassField(String t, boolean e) {
+        JPasswordField f = new JPasswordField(t);
+        styleField(f, e); if(!e) f.setEchoChar('\u2022'); return f;
+    }
+    private void styleField(JTextField f, boolean e) {
         f.setFont(StyleUtils.NORMAL_FONT);
-        f.setEditable(editable);
-        f.setPreferredSize(new Dimension(200, 35));
-        if(!editable) {
-            f.setBackground(new Color(240, 240, 240));
-            f.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-        }
+        f.setEditable(e);
+        f.setPreferredSize(new Dimension(250, 35));
+        if(!e) { f.setBackground(new Color(245, 245, 245)); f.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); }
     }
 }
