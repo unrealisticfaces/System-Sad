@@ -22,117 +22,120 @@ public class AdminInventory extends JPanel {
         this.inventory = inventory;
 
         setLayout(new BorderLayout());
-        setBackground(new Color(248, 249, 255));
+        setBackground(StyleUtils.BG_COLOR);
 
-        // --- TOP PANEL ---
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-        topPanel.setBackground(new Color(248, 249, 255));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 30));
+        // --- HEADER ---
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(StyleUtils.BG_COLOR);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(25, 40, 20, 40));
 
-        JLabel overviewLabel = new JLabel("Ingredient Inventory");
-        overviewLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        JLabel subtitleLabel = new JLabel("Monitor critical inventory issues");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        JLabel title = new JLabel("Inventory Management");
+        title.setFont(StyleUtils.HEADER_FONT);
+        title.setForeground(StyleUtils.DARK_TEXT);
+        
+        topPanel.add(title, BorderLayout.WEST);
+        
+        JButton addButton = new JButton("+ Add Ingredient");
+        styleButton(addButton, StyleUtils.PRIMARY_COLOR);
+        addButton.addActionListener(e -> showAddIngredientDialog());
+        topPanel.add(addButton, BorderLayout.EAST);
 
-        topPanel.add(overviewLabel);
-        topPanel.add(Box.createVerticalStrut(5));
-        topPanel.add(subtitleLabel);
         add(topPanel, BorderLayout.NORTH);
 
-        // --- CONTENT PANEL ---
+        // --- CONTENT WRAPPER ---
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(Color.WHITE);
+        JPanel shadowContainer = new JPanel(new BorderLayout());
+        shadowContainer.setBorder(BorderFactory.createEmptyBorder(0, 40, 40, 40));
+        shadowContainer.setOpaque(false);
 
-        String[] columnNames = {"Name", "Category", "Quantity", "Min. Level", "Unit", "Expiry Date", "Status", "Actions"};
+        // --- CONTROLS ---
+        JPanel controls = new JPanel(new BorderLayout());
+        controls.setBackground(Color.WHITE);
+        controls.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
         
-        model = new DefaultTableModel(new Object[0][0], columnNames) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 7; // Only Actions editable
+        JTextField searchField = new JTextField("Search ingredients...");
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(220, 220, 220)),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        searchField.setPreferredSize(new Dimension(300, 35));
+        searchField.setFont(StyleUtils.NORMAL_FONT);
+        searchField.setForeground(Color.GRAY);
+        
+        searchField.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if(searchField.getText().equals("Search ingredients...")) {
+                    searchField.setText("");
+                    searchField.setForeground(Color.BLACK);
+                }
             }
+            public void focusLost(FocusEvent e) {
+                if(searchField.getText().isEmpty()) {
+                    searchField.setText("Search ingredients...");
+                    searchField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        
+        controls.add(searchField, BorderLayout.WEST);
+        
+        totalIngredientsLabel = new JLabel("Total Items: 0");
+        totalIngredientsLabel.setFont(StyleUtils.NORMAL_FONT);
+        controls.add(totalIngredientsLabel, BorderLayout.EAST);
+
+        // --- TABLE ---
+        String[] columnNames = {"Name", "Category", "Qty", "Min", "Unit", "Expiry", "Status", "Actions"};
+        model = new DefaultTableModel(new Object[0][0], columnNames) {
+            public boolean isCellEditable(int row, int column) { return column == 7; }
         };
 
         table = new JTable(model);
-        table.setFont(new Font("Arial", Font.PLAIN, 14));
-        table.setRowHeight(30);
-        table.setBackground(Color.WHITE);
+        StyleUtils.styleTable(table);
         
-        // Custom Status Renderer
-        table.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                label.setHorizontalAlignment(SwingConstants.CENTER);
-                label.setOpaque(true);
-                
-                String status = (String) value;
-                if ("Out of Stock".equals(status)) label.setBackground(new Color(255, 102, 102));
-                else if ("Expired".equals(status)) label.setBackground(new Color(255, 102, 102));
-                else if ("Expiring Soon".equals(status) || "Low Stock".equals(status)) label.setBackground(new Color(255, 204, 153));
-                else label.setBackground(Color.WHITE);
-                
-                return label;
-            }
-        });
-
-        // Setup Actions
-        table.getColumn("Actions").setCellRenderer(new ActionRenderer());
-        table.getColumn("Actions").setCellEditor(new ActionEditor(new JCheckBox()));
-
-        // --- SEARCH & CONTROLS ---
-        JPanel searchPanel = new JPanel(new BorderLayout());
-        searchPanel.setBackground(Color.WHITE);
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 0, 40));
-
-        JTextField searchField = new JTextField("Search ingredient...");
-        searchField.setPreferredSize(new Dimension(300, 30));
+        // Renderers
+        table.getColumnModel().getColumn(6).setCellRenderer(new StyleUtils.StatusCellRenderer());
+        table.getColumnModel().getColumn(7).setCellRenderer(new ActionRenderer());
+        table.getColumnModel().getColumn(7).setCellEditor(new ActionEditor(new JCheckBox()));
         
+        // Column Widths
+        table.getColumnModel().getColumn(0).setPreferredWidth(150);
+        table.getColumnModel().getColumn(6).setPreferredWidth(120);
+        table.getColumnModel().getColumn(7).setPreferredWidth(180); // More space for buttons
+
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.getViewport().setBackground(Color.WHITE);
+
+        contentPanel.add(controls, BorderLayout.NORTH);
+        contentPanel.add(scroll, BorderLayout.CENTER);
+        
+        shadowContainer.add(contentPanel, BorderLayout.CENTER);
+        add(shadowContainer, BorderLayout.CENTER);
+
+        // Search Logic
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
-        
         searchField.addKeyListener(new KeyAdapter() {
             public void keyReleased(KeyEvent e) {
                 String text = searchField.getText();
-                if(text.equals("Search ingredient...")) return;
-                if (text.trim().length() == 0) sorter.setRowFilter(null);
+                if (text.equals("Search ingredients...") || text.trim().length() == 0) sorter.setRowFilter(null);
                 else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
             }
         });
 
-        JButton addButton = new JButton("+ Add New Ingredient");
-        addButton.setBackground(Color.BLACK);
-        addButton.setForeground(Color.WHITE);
-        addButton.addActionListener(e -> showAddIngredientDialog());
-
-        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        rightPanel.setOpaque(false);
-        rightPanel.add(searchField);
-        rightPanel.add(addButton);
-        
-        searchPanel.add(rightPanel, BorderLayout.EAST);
-
-        totalIngredientsLabel = new JLabel("Total Ingredients: 0");
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        infoPanel.setBackground(Color.WHITE);
-        infoPanel.add(searchPanel, BorderLayout.NORTH);
-        infoPanel.add(totalIngredientsLabel, BorderLayout.SOUTH);
-        totalIngredientsLabel.setBorder(BorderFactory.createEmptyBorder(10, 40, 10, 0));
-
-        contentPanel.add(infoPanel, BorderLayout.NORTH);
-        contentPanel.add(new JScrollPane(table), BorderLayout.CENTER);
-
-        JPanel outerWrapper = new JPanel(new BorderLayout());
-        outerWrapper.setOpaque(false);
-        outerWrapper.setBorder(BorderFactory.createEmptyBorder(30, 20, 40, 20));
-        outerWrapper.add(contentPanel, BorderLayout.CENTER);
-
-        add(outerWrapper, BorderLayout.CENTER);
-        
-        // Initial Refresh
         refreshTableData();
     }
     
+    private void styleButton(JButton btn, Color bg) {
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+    }
+
     private void refreshTableData() {
         model.setRowCount(0);
         for(Ingredient i : inventory) {
@@ -155,7 +158,6 @@ public class AdminInventory extends JPanel {
         JTextField qtyField = new JTextField();
         JTextField minField = new JTextField();
         JComboBox<String> unitBox = new JComboBox<>(new String[]{"pcs", "kg", "L", "g", "mL"});
-        
         JFormattedTextField dateField = null;
         try { dateField = new JFormattedTextField(new MaskFormatter("##/##/####")); } catch (ParseException e) {}
 
@@ -176,53 +178,79 @@ public class AdminInventory extends JPanel {
                 String unit = (String) unitBox.getSelectedItem();
                 String type = (String) catBox.getSelectedItem();
                 LocalDate expDate = LocalDate.parse(finalDateField.getText(), DATE_FMT);
-
-                Ingredient ing = new Ingredient(name, type, qty, min, unit, expDate);
-                inventory.add(ing);
-                
-                // --- SAVE TO DB ---
+                inventory.add(new Ingredient(name, type, qty, min, unit, expDate));
                 InventoryDataManager.saveInventory(inventory);
-
-                // Update UI across all panels
                 refreshTableData();
-                
                 dialog.dispose();
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "Invalid Input: " + ex.getMessage());
-            }
+            } catch (Exception ex) { JOptionPane.showMessageDialog(dialog, "Invalid Input: " + ex.getMessage()); }
         });
 
-        dialog.add(new JLabel("")); 
-        dialog.add(saveBtn);
+        dialog.add(new JLabel("")); dialog.add(saveBtn);
         dialog.setVisible(true);
     }
 
-    // --- Action Button Classes ---
+    // --- UPDATED RENDERER FOR PERFECT ALIGNMENT ---
     class ActionRenderer extends JPanel implements TableCellRenderer {
-        public ActionRenderer() { add(new JButton("Edit")); add(new JButton("Delete")); setOpaque(true); setBackground(Color.WHITE); }
-        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) { return this; }
+        JButton edit = new JButton("Edit");
+        JButton del = new JButton("Delete");
+
+        public ActionRenderer() {
+            setOpaque(true);
+            setLayout(new GridBagLayout()); // GridBag centers components by default
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(0, 2, 0, 2); // Small gap between buttons
+
+            // Style Edit
+            styleActionBtn(edit, new Color(241, 196, 15));
+            // Style Delete
+            styleActionBtn(del, new Color(231, 76, 60));
+            
+            add(edit, gbc);
+            add(del, gbc);
+        }
+
+        private void styleActionBtn(JButton btn, Color c) {
+            btn.setBackground(c);
+            btn.setForeground(Color.WHITE);
+            btn.setBorder(null);
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            btn.setPreferredSize(new Dimension(60, 26));
+        }
+
+        public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+            setBackground(s ? t.getSelectionBackground() : Color.WHITE);
+            return this;
+        }
     }
 
     class ActionEditor extends AbstractCellEditor implements TableCellEditor {
-        JPanel p = new JPanel(); JButton edit = new JButton("Edit"), del = new JButton("Delete");
+        JPanel p = new JPanel(new GridBagLayout());
+        JButton edit = new JButton("Edit");
+        JButton del = new JButton("Delete");
+        
         public ActionEditor(JCheckBox cb) {
-            p.add(edit); p.add(del);
-            p.setBackground(Color.WHITE);
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(0, 2, 0, 2);
+
+            styleActionBtn(edit, new Color(241, 196, 15));
+            styleActionBtn(del, new Color(231, 76, 60));
+
+            p.add(edit, gbc);
+            p.add(del, gbc);
             
-            // --- DELETE ---
             del.addActionListener(e -> {
                 int row = table.getSelectedRow();
                 if(row != -1) {
-                    inventory.remove(row);
-                    // Save
-                    InventoryDataManager.saveInventory(inventory);
-                    
-                    refreshTableData();
+                    if(JOptionPane.showConfirmDialog(null, "Delete this item?", "Confirm", JOptionPane.YES_NO_OPTION) == 0){
+                        inventory.remove(row);
+                        InventoryDataManager.saveInventory(inventory);
+                        refreshTableData();
+                    }
                     fireEditingStopped();
                 }
             });
             
-            // --- EDIT ---
             edit.addActionListener(e -> {
                  int row = table.getSelectedRow();
                  if (row != -1) {
@@ -230,19 +258,28 @@ public class AdminInventory extends JPanel {
                     if(val != null) {
                         try {
                             inventory.get(row).setQuantity(Integer.parseInt(val));
-                            // Save
                             InventoryDataManager.saveInventory(inventory);
-                            
                             refreshTableData();
-                        } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(null, "Invalid number");
-                        }
+                        } catch (Exception ex) {}
                         fireEditingStopped();
                     }
                  }
             });
         }
-        public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) { return p; }
+        
+        private void styleActionBtn(JButton btn, Color c) {
+            btn.setBackground(c);
+            btn.setForeground(Color.WHITE);
+            btn.setBorder(null);
+            btn.setFocusPainted(false);
+            btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            btn.setPreferredSize(new Dimension(60, 26));
+        }
+
+        public Component getTableCellEditorComponent(JTable t, Object v, boolean s, int r, int c) { 
+            p.setBackground(t.getSelectionBackground());
+            return p; 
+        }
         public Object getCellEditorValue() { return ""; }
     }
 }

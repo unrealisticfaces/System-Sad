@@ -11,197 +11,198 @@ public class AdminOverview extends JPanel {
     public AdminOverview(AdminMainFrame adminMainFrame, List<Ingredient> inventory) {
         this.adminMainFrame = adminMainFrame;
         setLayout(new BorderLayout());
-        setBackground(new Color(248, 249, 255));
-        
-        // Init with current inventory
-        add(createCenterPanel(inventory), BorderLayout.CENTER);
-    }
-
-    // Returns JComponent to allow JScrollPane
-    private JComponent createCenterPanel(List<Ingredient> inventory) {
-        // --- CALCULATION LOGIC ---
-        int total = inventory.size();
-        int low = 0, soon = 0, expired = 0, out = 0;
-        
-        List<String> outList = new ArrayList<>();
-        List<String> expList = new ArrayList<>();
-        List<String> soonList = new ArrayList<>();
-        List<String> lowList = new ArrayList<>();
-
-        LocalDate today = LocalDate.now();
-
-        for (Ingredient ing : inventory) {
-            if (ing.getQuantity() == 0) { 
-                out++; 
-                outList.add(ing.getName()); 
-            } else if (ing.getQuantity() <= ing.getMinLevel()) { 
-                low++; 
-                lowList.add(ing.getName()); 
-            }
-            
-            if (ing.isExpired()) { 
-                expired++; 
-                expList.add(ing.getName()); 
-            } else if (ing.isExpiringSoon()) { 
-                soon++; 
-                soonList.add(ing.getName()); 
-            }
-        }
-
-        // --- UI LAYOUT ---
-        // Main container for scrolling
-        JPanel content = new JPanel();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.setBackground(new Color(248, 249, 255));
-        content.setBorder(BorderFactory.createEmptyBorder(20, 40, 40, 40));
-
-        // 1. Header
-        JLabel header = new JLabel("Dashboard Overview");
-        header.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        header.setForeground(new Color(50, 50, 50));
-        header.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(header);
-        
-        JLabel subHeader = new JLabel("Key metrics and critical inventory alerts.");
-        subHeader.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        subHeader.setForeground(Color.GRAY);
-        subHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(subHeader);
-        content.add(Box.createVerticalStrut(25));
-
-        // 2. Stats Boxes (Grid Layout)
-        JPanel statsPanel = new JPanel(new GridLayout(1, 5, 20, 0)); // 1 row, 5 cols, gap 20
-        statsPanel.setOpaque(false);
-        statsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        statsPanel.setMaximumSize(new Dimension(2000, 120)); // Limit height
-        
-        // Add nice cards
-        statsPanel.add(createStatCard("Total Items", String.valueOf(total), new Color(41, 128, 185))); // Blue
-        statsPanel.add(createStatCard("Low Stock", String.valueOf(low), new Color(243, 156, 18))); // Orange
-        statsPanel.add(createStatCard("Expiring", String.valueOf(soon), new Color(230, 126, 34))); // Dark Orange
-        statsPanel.add(createStatCard("Expired", String.valueOf(expired), new Color(192, 57, 43))); // Red
-        statsPanel.add(createStatCard("Out of Stock", String.valueOf(out), new Color(149, 165, 166))); // Grey
-
-        content.add(statsPanel);
-        content.add(Box.createVerticalStrut(30));
-
-        // 3. Alerts Section Header
-        JLabel alertHeader = new JLabel("Active Alerts");
-        alertHeader.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        alertHeader.setForeground(new Color(50, 50, 50));
-        alertHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-        content.add(alertHeader);
-        content.add(Box.createVerticalStrut(15));
-
-        // 4. Alerts List
-        if(!outList.isEmpty()) 
-            content.add(createAlertCard("Out of Stock", "Immediate restock required.", outList, new Color(255, 235, 238), new Color(211, 47, 47)));
-        
-        if(!expList.isEmpty()) 
-            content.add(createAlertCard("Expired Items", "Remove from inventory immediately.", expList, new Color(255, 235, 238), new Color(198, 40, 40)));
-        
-        if(!soonList.isEmpty()) 
-            content.add(createAlertCard("Expiring Soon", "Plan to use or discount within 7 days.", soonList, new Color(255, 243, 224), new Color(239, 108, 0)));
-        
-        if(!lowList.isEmpty()) 
-            content.add(createAlertCard("Low Stock Warning", "Quantity below minimum threshold.", lowList, new Color(255, 248, 225), new Color(251, 192, 45)));
-
-        if (outList.isEmpty() && expList.isEmpty() && soonList.isEmpty() && lowList.isEmpty()) {
-            JPanel noAlerts = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            noAlerts.setOpaque(false);
-            JLabel good = new JLabel("All clear! No critical issues found.");
-            good.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-            good.setForeground(new Color(39, 174, 96));
-            noAlerts.add(good);
-            content.add(noAlerts);
-        }
-        
-        // Wrap in scroll pane
-        JScrollPane scroll = new JScrollPane(content);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-        return scroll;
-    }
-
-    // --- HELPER: BEAUTIFUL STAT CARD ---
-    private JPanel createStatCard(String title, String val, Color accentColor) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 3, 0, accentColor), // Bottom colored line
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
-        ));
-        
-        JLabel t = new JLabel(title);
-        t.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        t.setForeground(Color.GRAY);
-        t.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JLabel v = new JLabel(val);
-        v.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        v.setForeground(Color.BLACK);
-        v.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        card.add(t);
-        card.add(Box.createVerticalStrut(10));
-        card.add(v);
-        
-        return card;
-    }
-
-    // --- HELPER: ALERT CARD ---
-    private JPanel createAlertCard(String title, String sub, List<String> items, Color bg, Color textC) {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(bg);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(bg.darker(), 1),
-            BorderFactory.createEmptyBorder(15, 20, 15, 20)
-        ));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(2000, 500)); // Allow width to stretch
-        
-        JLabel t = new JLabel(title);
-        t.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        t.setForeground(textC);
-        t.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        JLabel s = new JLabel(sub);
-        s.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        s.setForeground(textC.darker());
-        s.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        card.add(t);
-        card.add(s);
-        card.add(Box.createVerticalStrut(10));
-        
-        // List items horizontally if possible, or vertical if many
-        StringBuilder sb = new StringBuilder("<html>");
-        for(String i : items) sb.append("• ").append(i).append("&nbsp;&nbsp; ");
-        sb.append("</html>");
-        
-        JLabel content = new JLabel(sb.toString());
-        content.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        content.setForeground(Color.BLACK);
-        content.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        card.add(content);
-        
-        // Wrapper for margin bottom
-        JPanel wrap = new JPanel(new BorderLayout());
-        wrap.setOpaque(false);
-        wrap.add(card);
-        wrap.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
-        wrap.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        return wrap;
+        setBackground(StyleUtils.BG_COLOR); 
+        refreshOverview(inventory);
     }
 
     public void refreshOverview(List<Ingredient> inventory) {
         removeAll();
-        add(createCenterPanel(inventory), BorderLayout.CENTER);
+        
+        // --- CALCULATION LOGIC ---
+        int total = inventory.size();
+        int low = 0, soon = 0, expired = 0, out = 0;
+        
+        // We will store alert objects to generate cards later
+        List<AlertData> alerts = new ArrayList<>();
+
+        for (Ingredient ing : inventory) {
+            if (ing.getQuantity() == 0) { 
+                out++; 
+                alerts.add(new AlertData("Out of Stock", ing.getName(), new Color(189, 195, 199), new Color(127, 140, 141))); 
+            }
+            else if (ing.getQuantity() <= ing.getMinLevel()) { 
+                low++; 
+                alerts.add(new AlertData("Low Stock", ing.getName(), new Color(255, 243, 224), new Color(255, 152, 0))); 
+            }
+            
+            if (ing.isExpired()) { 
+                expired++; 
+                alerts.add(new AlertData("Expired", ing.getName(), new Color(255, 235, 238), new Color(231, 76, 60))); 
+            }
+            else if (ing.isExpiringSoon()) { 
+                soon++; 
+                alerts.add(new AlertData("Expiring Soon", ing.getName(), new Color(255, 248, 225), new Color(243, 156, 18))); 
+            }
+        }
+
+        // --- UI LAYOUT ---
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(StyleUtils.BG_COLOR);
+        content.setBorder(BorderFactory.createEmptyBorder(30, 40, 40, 40));
+
+        // 1. Header
+        JLabel head = new JLabel("Overview Dashboard");
+        head.setFont(StyleUtils.HEADER_FONT);
+        head.setForeground(StyleUtils.DARK_TEXT);
+        head.setAlignmentX(0f);
+        content.add(head);
+        content.add(Box.createVerticalStrut(20));
+
+        // 2. Stats Grid
+        JPanel grid = new JPanel(new GridLayout(1, 4, 20, 0));
+        grid.setOpaque(false);
+        grid.setAlignmentX(0f);
+        grid.setMaximumSize(new Dimension(2000, 140));
+
+        grid.add(new DashboardCard("Total Items", total, new Color(66, 165, 245), "/img/inventory.png"));
+        grid.add(new DashboardCard("Low Stock", low, new Color(255, 167, 38), "/img/alert.png"));
+        grid.add(new DashboardCard("Expiring", soon, new Color(239, 83, 80), "/img/expiring.png"));
+        grid.add(new DashboardCard("Out of Stock", out, new Color(149, 165, 166), "/img/delete.png"));
+
+        content.add(grid);
+        content.add(Box.createVerticalStrut(30));
+
+        // 3. Alerts Section Header
+        JLabel alertHead = new JLabel("Attention Needed");
+        alertHead.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        alertHead.setForeground(StyleUtils.DARK_TEXT);
+        alertHead.setAlignmentX(0f);
+        content.add(alertHead);
+        content.add(Box.createVerticalStrut(15));
+
+        // 4. Alerts List
+        if (alerts.isEmpty()) {
+            JPanel emptyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            emptyPanel.setOpaque(false);
+            emptyPanel.setAlignmentX(0f);
+            
+            JLabel ok = new JLabel("All clear! Inventory is in good shape.");
+            ok.setForeground(new Color(46, 204, 113));
+            ok.setFont(StyleUtils.NORMAL_FONT);
+            
+            emptyPanel.add(ok);
+            content.add(emptyPanel);
+        } else {
+            for (AlertData alert : alerts) {
+                content.add(createAlertCard(alert));
+                content.add(Box.createVerticalStrut(10)); // Gap between alerts
+            }
+        }
+
+        JScrollPane scroll = new JScrollPane(content);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        add(scroll, BorderLayout.CENTER);
+        
         revalidate();
         repaint();
+    }
+
+    // --- NEW: Alert Card Creation ---
+    private JPanel createAlertCard(AlertData data) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setMaximumSize(new Dimension(2000, 60)); // Fixed height for neatness
+        card.setAlignmentX(0f);
+        
+        // Left Color Strip
+        JPanel strip = new JPanel();
+        strip.setPreferredSize(new Dimension(6, 60));
+        strip.setBackground(data.accentColor);
+        
+        // Content
+        JPanel textPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 8)); // Horizontal flow
+        textPanel.setOpaque(false);
+        
+        // Badge (Type)
+        JLabel typeLbl = new JLabel(data.type);
+        typeLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        typeLbl.setOpaque(true);
+        typeLbl.setBackground(data.bgColor); // Light bg
+        typeLbl.setForeground(data.accentColor); // Dark text
+        typeLbl.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8)); // Padding inside badge
+        
+        // Item Name
+        JLabel itemLbl = new JLabel(data.itemName);
+        itemLbl.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        itemLbl.setForeground(StyleUtils.DARK_TEXT);
+        
+        textPanel.add(typeLbl);
+        textPanel.add(itemLbl);
+        
+        card.add(strip, BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+        
+        // Subtle Border
+        card.setBorder(BorderFactory.createLineBorder(new Color(240, 240, 240)));
+        
+        return card;
+    }
+
+    // --- Helper Classes ---
+    
+    class AlertData {
+        String type;
+        String itemName;
+        Color bgColor;
+        Color accentColor;
+
+        public AlertData(String type, String itemName, Color bgColor, Color accentColor) {
+            this.type = type;
+            this.itemName = itemName;
+            this.bgColor = bgColor;
+            this.accentColor = accentColor;
+        }
+    }
+
+    class DashboardCard extends JPanel {
+        public DashboardCard(String title, int value, Color accent, String iconPath) {
+            setLayout(new BorderLayout());
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Outer margin for shadow effect
+
+            JPanel inner = new JPanel(new BorderLayout());
+            inner.setBackground(Color.WHITE);
+            inner.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20)); // Inner padding
+            
+            JLabel tLbl = new JLabel(title);
+            tLbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+            tLbl.setForeground(new Color(150, 150, 150));
+            
+            JLabel vLbl = new JLabel(String.valueOf(value));
+            vLbl.setFont(new Font("Segoe UI", Font.BOLD, 36));
+            vLbl.setForeground(accent);
+
+            // Icon
+            JLabel iconLbl = new JLabel();
+            try {
+                java.net.URL url = getClass().getResource(iconPath);
+                if (url != null) {
+                    ImageIcon ic = new ImageIcon(url);
+                    iconLbl.setIcon(new ImageIcon(ic.getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH)));
+                }
+            } catch(Exception e){}
+
+            JPanel left = new JPanel(new GridLayout(2, 1));
+            left.setOpaque(false);
+            left.add(tLbl);
+            left.add(vLbl);
+
+            inner.add(left, BorderLayout.CENTER);
+            inner.add(iconLbl, BorderLayout.EAST);
+            
+            add(inner, BorderLayout.CENTER);
+        }
     }
 }
