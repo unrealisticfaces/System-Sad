@@ -209,9 +209,10 @@ public class AdminInventory extends JPanel {
             p.add(edit); p.add(del);
             p.setBackground(Color.WHITE);
             del.addActionListener(e -> {
-                int row = table.getSelectedRow();
-                if(row != -1) {
-                    inventory.remove(row);
+                int viewRow = table.getSelectedRow();
+                if (viewRow != -1) {
+                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    inventory.remove(modelRow);
                     refreshTableData();
                     adminMainFrame.adminOverview.refreshOverview(inventory);
                     adminMainFrame.adminReports.refreshSummary();
@@ -221,12 +222,13 @@ public class AdminInventory extends JPanel {
             });
             edit.addActionListener(e -> {
                  // Simple Edit Logic (Expand as needed)
-                 int row = table.getSelectedRow();
-                 if (row != -1) {
-                    String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(row).getQuantity());
-                    if(val != null) {
+                 int viewRow = table.getSelectedRow();
+                 if (viewRow != -1) {
+                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(modelRow).getQuantity());
+                    if (val != null) {
                         try {
-                            inventory.get(row).setQuantity(Integer.parseInt(val));
+                            inventory.get(modelRow).setQuantity(Integer.parseInt(val));
                             refreshTableData();
                         } catch (NumberFormatException ex) {
                             JOptionPane.showMessageDialog(null, "Invalid number");

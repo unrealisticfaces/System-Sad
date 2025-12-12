@@ -16,7 +16,8 @@ public class AdminOverview extends JPanel {
         add(createCenterPanel(inventory), BorderLayout.CENTER);
     }
 
-    private JPanel createCenterPanel(List<Ingredient> inventory) {
+    // FIXED: Changed return type from 'JPanel' to 'JComponent' so it can return JScrollPane
+    private JComponent createCenterPanel(List<Ingredient> inventory) {
         // --- CALCULATION LOGIC ---
         int total = inventory.size();
         int low = 0, soon = 0, expired = 0, out = 0;
