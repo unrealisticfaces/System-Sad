@@ -1,4 +1,3 @@
-// StaffTopNavBar.java
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -203,13 +202,4 @@ public class AdminTopNavBar extends JPanel {
         label.setBackground(new Color(233, 232, 255));
         selectedLabel = label;
     }
-
-                public static void main(String[] args) {
-                JFrame frame = new JFrame("AdminInventory Test");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.add(new AdminTopNavBar(new AdminMainFrame()));
-                frame.setSize(1200, 700);
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-            }
 }

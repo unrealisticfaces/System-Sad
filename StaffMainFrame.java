@@ -1,4 +1,3 @@
-// StaffMainFrame.java
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
@@ -22,11 +21,12 @@ public class StaffMainFrame extends JFrame {
 
         // ===================== Initialize Inventory =====================
         inventory = new ArrayList<>();
-        inventory.add(new Ingredient("Eggs", "Poultry", 6, 10, "pcs", "12/01/2025"));
-         inventory.add(new Ingredient("Milk", "Dairy", 12, 10, "L", "12/05/2025"));
-         inventory.add(new Ingredient("Tomatoes", "Vegetable", 5, 10, "kg", "11/25/2025"));
-         inventory.add(new Ingredient("Fresh Chicken", "Meat", 3, 5, "pcs", "11/23/2025"));
-         inventory.add(new Ingredient("Fresh Pork", "Meat", 0, 5, "pcs", "11/20/2025"));
+        // Fixed: Use LocalDate.of() instead of Strings
+        inventory.add(new Ingredient("Eggs", "Poultry", 6, 10, "pcs", LocalDate.of(2025, 12, 1)));
+        inventory.add(new Ingredient("Milk", "Dairy", 12, 10, "L", LocalDate.of(2025, 12, 5)));
+        inventory.add(new Ingredient("Tomatoes", "Vegetable", 5, 10, "kg", LocalDate.of(2025, 11, 25)));
+        inventory.add(new Ingredient("Fresh Chicken", "Meat", 3, 5, "pcs", LocalDate.of(2025, 11, 23)));
+        inventory.add(new Ingredient("Fresh Pork", "Meat", 0, 5, "pcs", LocalDate.of(2025, 11, 20)));
 
         // ===================== Top Navigation =====================
         StaffTopNavBar staffTopNavBar = new StaffTopNavBar(this);

@@ -6,7 +6,6 @@ import java.awt.event.*;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class AdminInventory extends JPanel {
@@ -168,6 +167,7 @@ public class AdminInventory extends JPanel {
         dialog.add(new JLabel("Expiry (MM/DD/YYYY):")); dialog.add(dateField);
 
         JButton saveBtn = new JButton("Save");
+        JFormattedTextField finalDateField = dateField;
         saveBtn.addActionListener(e -> {
             try {
                 String name = nameField.getText();
@@ -175,7 +175,7 @@ public class AdminInventory extends JPanel {
                 int min = Integer.parseInt(minField.getText());
                 String unit = (String) unitBox.getSelectedItem();
                 String type = (String) catBox.getSelectedItem();
-                LocalDate expDate = LocalDate.parse(dateField.getText(), DATE_FMT);
+                LocalDate expDate = LocalDate.parse(finalDateField.getText(), DATE_FMT);
 
                 Ingredient ing = new Ingredient(name, type, qty, min, unit, expDate);
                 inventory.add(ing);
@@ -222,11 +222,17 @@ public class AdminInventory extends JPanel {
             edit.addActionListener(e -> {
                  // Simple Edit Logic (Expand as needed)
                  int row = table.getSelectedRow();
-                 String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(row).getQuantity());
-                 if(val != null) {
-                     inventory.get(row).setQuantity(Integer.parseInt(val));
-                     refreshTableData();
-                     fireEditingStopped();
+                 if (row != -1) {
+                    String val = JOptionPane.showInputDialog("New Quantity:", inventory.get(row).getQuantity());
+                    if(val != null) {
+                        try {
+                            inventory.get(row).setQuantity(Integer.parseInt(val));
+                            refreshTableData();
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(null, "Invalid number");
+                        }
+                        fireEditingStopped();
+                    }
                  }
             });
         }

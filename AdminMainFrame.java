@@ -1,6 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.time.LocalDate; // Import this!
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +25,6 @@ public class AdminMainFrame extends JFrame {
         // ===================== Initialize Inventory =====================
         inventory = new ArrayList<>();
         
-        // Correct way to add ingredients with LocalDate (Year, Month, Day)
         inventory.add(new Ingredient("Eggs", "Poultry", 6, 10, "pcs", LocalDate.of(2025, 12, 1)));
         inventory.add(new Ingredient("Milk", "Dairy", 12, 10, "L", LocalDate.of(2025, 12, 5)));
         inventory.add(new Ingredient("Tomatoes", "Vegetable", 5, 10, "kg", LocalDate.of(2025, 11, 25)));
@@ -34,7 +33,6 @@ public class AdminMainFrame extends JFrame {
         inventory.add(new Ingredient("Lettuce", "Vegetable", 15, 5, "kg", LocalDate.of(2025, 11, 30)));
 
         // ===================== Top Navigation =====================
-        // Ensure AdminTopNavBar is in the same package or imported
         AdminTopNavBar adminTopNavBar = new AdminTopNavBar(this);
         add(adminTopNavBar, BorderLayout.NORTH);
 
@@ -43,7 +41,6 @@ public class AdminMainFrame extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
 
         // ===================== Initialize Panels =====================
-        // Pass the shared 'inventory' list to panels that need it
         adminOverview = new AdminOverview(this, inventory);
         adminInventory = new AdminInventory(this, inventory);
         adminReports = new AdminReports(this);

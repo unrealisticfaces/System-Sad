@@ -3,11 +3,11 @@ import java.time.format.DateTimeFormatter;
 
 public class Ingredient {
     private String name;
-    private String type;
+    private String type; // This acts as the "Category"
     private int quantity;
     private int minLevel;
     private String unit;
-    private LocalDate expiryDate; // CHANGED: Stores LocalDate, not String
+    private LocalDate expiryDate; 
 
     public Ingredient(String name, String type, int quantity, int minLevel, String unit, LocalDate expiryDate) {
         this.name = name;
@@ -23,7 +23,7 @@ public class Ingredient {
     public int getQuantity() { return quantity; }
     public int getMinLevel() { return minLevel; }
     public String getUnit() { return unit; }
-    public LocalDate getExpiryDate() { return expiryDate; } // Returns LocalDate now
+    public LocalDate getExpiryDate() { return expiryDate; } 
 
     // Helper for table display
     public String getFormattedDate() {

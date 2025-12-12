@@ -53,7 +53,8 @@ public class StaffInventory extends JPanel {
         for (int i = 0; i < inventory.size(); i++) {
             Ingredient ing = inventory.get(i);
             data[i][0] = ing.getName();
-            data[i][1] = ing.getCategory();
+            // Fixed: changed getCategory() to getType()
+            data[i][1] = ing.getType(); 
             data[i][2] = ing.getQuantity();
             data[i][3] = ing.getMinLevel();
             data[i][4] = ing.getUnit();

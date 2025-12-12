@@ -2,7 +2,6 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,13 +40,9 @@ public class Login extends JFrame {
         // 2. The Floating Card (Custom Rounded Panel)
         JPanel loginCard = new RoundedPanel(20, Color.WHITE);
         loginCard.setLayout(new BoxLayout(loginCard, BoxLayout.Y_AXIS));
-        loginCard.setBorder(new EmptyBorder(40, 50, 40, 50)); // Padding inside card
+        loginCard.setBorder(new EmptyBorder(40, 50, 40, 50)); 
         
-        // Add shadow/elevation effect (Simulated by border in standard Swing)
-        // Note: For real drop shadows, we usually paint them, but this keeps it simple.
-
         // --- Logo ---
-        // Using a placeholder icon if file not found to prevent crash
         ImageIcon logoIcon = null;
         try {
             java.net.URL imgURL = getClass().getResource("/img/logo.png");
@@ -107,7 +102,6 @@ public class Login extends JFrame {
         mainBackground.add(loginCard); // Add card to background
 
         setVisible(true);
-        // Focus request after visible
         SwingUtilities.invokeLater(() -> loginCard.requestFocusInWindow());
     }
 
@@ -116,7 +110,6 @@ public class Login extends JFrame {
         String user = userField.getText().trim();
         String pass = new String(passField.getPassword()).trim();
         
-        // Handle placeholder case
         if(user.equals("Username")) user = "";
         if(pass.equals("Password")) pass = "";
 
@@ -125,10 +118,8 @@ public class Login extends JFrame {
         if (targetMap.containsKey(user) && targetMap.get(user).equals(pass)) {
             dispose();
             if (isAdmin) {
-               // Open Admin
                try { new AdminMainFrame().setVisible(true); } catch(Exception ex) { ex.printStackTrace(); }
             } else {
-               // Open Staff
                try { new StaffMainFrame().setVisible(true); } catch(Exception ex) { ex.printStackTrace(); }
             }
         } else {
@@ -189,10 +180,9 @@ public class Login extends JFrame {
             }
         });
 
-        // Layering: Labels on top of Slider on top of BG
         container.add(lblStaff);
         container.add(lblAdmin);
-        container.add(slider); // Paint order matters? No, Swing uses z-order. 
+        container.add(slider); 
         container.setComponentZOrder(lblStaff, 0);
         container.setComponentZOrder(lblAdmin, 0);
         container.setComponentZOrder(slider, 1);
@@ -202,13 +192,11 @@ public class Login extends JFrame {
         return container;
     }
 
-    // --- Helper: Create Styled TextFields ---
     private JTextField createStyledTextField(String placeholder) {
         JTextField field = new JTextField(placeholder) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Optional: Paint a bottom line if focused
                 if(isFocusOwner()) {
                     g.setColor(PRIMARY_COLOR);
                     g.fillRect(0, getHeight()-2, getWidth(), 2);
@@ -230,7 +218,7 @@ public class Login extends JFrame {
                 }
             }
         };
-        field.setEchoChar((char)0); // Show text initially (placeholder)
+        field.setEchoChar((char)0); 
         styleFieldCommon(field, placeholder);
         return field;
     }
@@ -238,8 +226,8 @@ public class Login extends JFrame {
     private void styleFieldCommon(JTextField field, String placeholder) {
         field.setFont(MAIN_FONT);
         field.setForeground(Color.GRAY);
-        field.setBackground(new Color(245, 246, 250)); // Very light grey bg
-        field.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Padding inside
+        field.setBackground(new Color(245, 246, 250)); 
+        field.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); 
         field.setPreferredSize(new Dimension(300, 45));
         field.setMaximumSize(new Dimension(300, 45));
         
@@ -250,7 +238,7 @@ public class Login extends JFrame {
                     field.setForeground(Color.BLACK);
                     if(field instanceof JPasswordField) ((JPasswordField)field).setEchoChar('\u2022');
                 }
-                field.setBackground(Color.WHITE); // Highlight background
+                field.setBackground(Color.WHITE); 
             }
             public void focusLost(FocusEvent e) {
                 if (field.getText().isEmpty()) {
@@ -263,7 +251,6 @@ public class Login extends JFrame {
         });
     }
 
-    // --- Helper: Style Button ---
     private void styleButton(JButton btn) {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setBackground(PRIMARY_COLOR);
@@ -278,7 +265,6 @@ public class Login extends JFrame {
         });
     }
 
-    // --- Helper: Wrapper for centering ---
     private JPanel wrapComponent(JComponent c) {
         JPanel p = new JPanel();
         p.setOpaque(false);
@@ -286,8 +272,6 @@ public class Login extends JFrame {
         return p;
     }
 
-    // --- Inner Class: Rounded Panel ---
-    // Useful for the Card background and the toggle switch
     class RoundedPanel extends JPanel {
         private int radius;
         private Color bgColor;
@@ -295,7 +279,7 @@ public class Login extends JFrame {
         public RoundedPanel(int radius, Color bgColor) {
             this.radius = radius;
             this.bgColor = bgColor;
-            setOpaque(false); // Important for round corners
+            setOpaque(false); 
         }
 
         @Override
